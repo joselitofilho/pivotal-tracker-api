@@ -67,7 +67,7 @@ namespace br.com.pivotaltracker.services
             if (!string.IsNullOrEmpty(story.Description)) storyXml += "<description>" + story.Description + "</description>";
             storyXml += "</story>";
 
-            string response = SendRequest(url, storyXml);
+            string response = SendRequestPost(url, storyXml);
             return "Pivotal story created: " + GetResponseByTag(response, "/story/url");
         }
         /*!
@@ -82,7 +82,7 @@ namespace br.com.pivotaltracker.services
 
             string task = "<task><description>" + description + "</description></task>";
 
-            string response = SendRequest(url, task);
+            string response = SendRequestPost(url, task);
             return "Pivotal story created: " + GetResponseByTag(response, "/story/url");
         }
         /*!
@@ -91,14 +91,36 @@ namespace br.com.pivotaltracker.services
          * \param comment
          * \return
          */
-        public string AddNote(PivotalStory story, string comment)
+        public string AddNote(string storyId, string comment)
         {
-            string url = "http://www.pivotaltracker.com/services/v3/projects/" + ProjectId + "/stories/" + story.StoryId + "/notes?token=" + Token;
+            string url = "http://www.pivotaltracker.com/services/v3/projects/" + ProjectId + "/stories/" + storyId + "/notes?token=" + Token;
 
             string note = "<note><text>" + comment + "</text></note>";
 
-            string response = SendRequest(url, note);
+            string response = SendRequestPost(url, note);
             return "Pivotal note created: " + GetResponseByTag(response, "/note/id");
+        }
+        /*!
+         * 
+         * 
+         */
+        private string SendRequest(string url)
+        {
+            // Create a new HttpWebRequest object.
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+
+            Stream objStream;
+            try
+            {
+                objStream = request.GetResponse().GetResponseStream();
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
+
+            StreamReader objReader = new StreamReader(objStream);
+            return StreamReader2String(objReader);
         }
         /*!
          * 
@@ -106,7 +128,7 @@ namespace br.com.pivotaltracker.services
          * \param data
          * \return
          */
-        private string SendRequest(string url, string data=null)
+        private string SendRequestPost(string url, string data=null)
         {
             // Create a new HttpWebRequest object.
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
@@ -174,7 +196,7 @@ namespace br.com.pivotaltracker.services
          * \param project
          * \return
          */
-        public string GetStories(string project)
+        public string GetStories()
         {
             string url = "http://www.pivotaltracker.com/services/v3/projects/" + ProjectId + "/stories?token=" + Token;
 
